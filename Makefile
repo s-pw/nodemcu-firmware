@@ -189,7 +189,16 @@ endef
 $(BINODIR)/%.bin: $(IMAGEODIR)/%.out
 	@mkdir -p $(BINODIR)
 	@$(NM) $< | grep -w U && { echo "Firmware has undefined (but unused) symbols!"; exit 1; } || true
-	$(ESPTOOL) elf2image --flash_mode dio --flash_freq 40m $< -o $(FIRMWAREDIR)
+	$(OBJCOPY) --dump-section .irom0.text=$(<:%.out=%.irom.bin) $<
+	$(ESPTOOL) elf2image -o $(<:%.out=%.tmp.bin) -e 2 $<
+	cp $(<:%.out=%.tmp.bin) $@
+	head -c`cat $(<:%.out=%.tmp.bin) | wc -c | awk '{print $$1-1}'` $(<:%.out=%.tmp.bin) > $@
+	tail -c1 $(<:%.out=%.tmp.bin) | \
+	  cat $(<:%.out=%.irom.bin) - | \
+	  xxd -ps -c1 | \
+	  awk '{sum=xor(sum,strtonum("0x"$$1))} END {printf"%02x",sum}' | \
+	  xxd -ps -r >> $@
+	cp "$@" $(FIRMWAREDIR)/
 
 #############################################################
 # Rules base
@@ -206,7 +215,7 @@ sdk_patched: sdk_extracted $(TOP_DIR)/sdk/.patched-$(SDK_VER)
 
 $(TOP_DIR)/sdk/.extracted-$(SDK_BASE_VER): $(TOP_DIR)/cache/v$(SDK_FILE_VER).zip
 	mkdir -p "$(dir $@)"
-	(cd "$(dir $@)" && rm -fr esp_iot_sdk_v$(SDK_VER) ESP8266_NONOS_SDK-$(SDK_VER) && unzip $(TOP_DIR)/cache/v$(SDK_FILE_VER).zip ESP8266_NONOS_SDK-$(SDK_VER)/lib/* ESP8266_NONOS_SDK-$(SDK_VER)/ld/eagle.rom.addr.v6.ld ESP8266_NONOS_SDK-$(SDK_VER)/include/* ESP8266_NONOS_SDK-$(SDK_VER)/bin/esp_init_data_default.bin)
+	(cd "$(dir $@)" && rm -fr esp_iot_sdk_v$(SDK_VER) ESP8266_NONOS_SDK-$(SDK_VER) && unzip $(TOP_DIR)/cache/v$(SDK_FILE_VER).zip ESP8266_NONOS_SDK-$(SDK_VER)/lib/* ESP8266_NONOS_SDK-$(SDK_VER)/ld/* ESP8266_NONOS_SDK-$(SDK_VER)/include/* ESP8266_NONOS_SDK-$(SDK_VER)/bin/esp_init_data_default.bin)
 	mv $(dir $@)/ESP8266_NONOS_SDK-$(SDK_VER) $(dir $@)/esp_iot_sdk_v$(SDK_VER)
 	rm -f $(SDK_DIR)/lib/liblwip.a
 	touch $@
@@ -252,14 +261,18 @@ flashinternal:
 ifndef PDIR
 	$(MAKE) -C ./app flashinternal
 else
-	$(ESPTOOL) --port $(ESPPORT) write_flash $(FLASHOPTIONS) 0x00000 $(FIRMWAREDIR)0x00000.bin 0x10000 $(FIRMWAREDIR)0x10000.bin
+	$(ESPTOOL) --port $(ESPPORT) write_flash $(FLASHOPTIONS) 0x00000 $(FIRMWAREDIR)rboot.bin 0x2000 $(FIRMWAREDIR)eagle.app.v6.bin
 endif
 
 .subdirs:
-	@set -e; $(foreach d, $(SUBDIRS), $(MAKE) -C $(d);)
+	@set -e; $(foreach d, $(SUBDIRS), $(MAKE) -C $(d) SDK_DIR="$(SDK_DIR)";)
 
-#.subdirs:
-#	$(foreach d, $(SUBDIRS), $(MAKE) -C $(d))
+$(TOP_DIR)/rboot/firmware/rboot.bin:
+	@set -e; $(MAKE) -C $(TOP_DIR)/rboot SDK_DIR="$(SDK_DIR)"
+
+$(BINODIR)/rboot.bin: $(TOP_DIR)/rboot/firmware/rboot.bin
+	cp "$<" "$@"
+	cp "$@" $(FIRMWAREDIR)/
 
 ifneq ($(MAKECMDGOALS),clean)
 ifneq ($(MAKECMDGOALS),clobber)

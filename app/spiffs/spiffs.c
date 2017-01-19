@@ -1,6 +1,9 @@
 #include "c_stdio.h"
 #include "platform.h"
 #include "spiffs.h"
+#ifdef SPIFFS_FIXED_OFFSET_RBOOT
+#include "rboot-api.h"
+#endif
 
 #include "spiffs_nucleus.h"
 
@@ -50,14 +53,24 @@ The small 4KB sectors allow for greater flexibility in applications th
 ********************/
 
 static bool myspiffs_set_location(spiffs_config *cfg, int align, int offset, int block_size) {
-#ifdef SPIFFS_FIXED_LOCATION
+#if defined(SPIFFS_FIXED_LOCATION)
   cfg->phys_addr = (SPIFFS_FIXED_LOCATION + block_size - 1) & ~(block_size-1);
+#elif defined(SPIFFS_FIXED_OFFSET_RBOOT)
+  rboot_config bootconf = rboot_get_config();
+  uint8 rom;
+#if defined(BOOT_RTC_ENABLED)
+  if (!rboot_get_last_boot_rom(&rom))
+    rom = bootconf.current_rom;
+#endif
+  cfg->phys_addr = SPIFFS_FIXED_OFFSET_RBOOT + (bootconf.roms[rom] - 0x2000);
 #else
   cfg->phys_addr = ( u32_t )platform_flash_get_first_free_block_address( NULL ) + offset;
   cfg->phys_addr = (cfg->phys_addr + align - 1) & ~(align - 1);
 #endif
 #ifdef SPIFFS_SIZE_1M_BOUNDARY
   cfg->phys_size = ((0x100000 - (SYS_PARAM_SEC_NUM * INTERNAL_FLASH_SECTOR_SIZE) - ( ( u32_t )cfg->phys_addr )) & ~(block_size - 1)) & 0xfffff;
+#elif defined(SPIFFS_FIXED_SIZE)
+  cfg->phys_size = SPIFFS_FIXED_SIZE;
 #else
   cfg->phys_size = (INTERNAL_FLASH_SIZE - ( ( u32_t )cfg->phys_addr )) & ~(block_size - 1);
 #endif
@@ -121,7 +134,7 @@ static bool myspiffs_find_cfg(spiffs_config *cfg, bool force_create) {
   int i;
 
   if (!force_create) {
-#ifdef SPIFFS_FIXED_LOCATION
+#if defined(SPIFFS_FIXED_LOCATION)
     if (myspiffs_set_cfg(cfg, 0, 0, FALSE)) {
       return TRUE;
     }

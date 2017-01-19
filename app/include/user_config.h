@@ -19,6 +19,12 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 #define lua_assert(x)    ((x) ? (void) 0 : luaL_assertfail(__FILE__, __LINE__, #x))
 #endif
 
+// spiffs position, relative to the start of the
+// 1mb chunk containing the corresponding rom
+#define SPIFFS_FIXED_OFFSET_RBOOT 0x100000
+// spiffs size
+#define SPIFFS_FIXED_SIZE 0xFA000
+
 // This enables lots of debug output and changes the serial bit rate. This
 // is normally only used by hardcore developers
 // #define DEVELOP_VERSION
