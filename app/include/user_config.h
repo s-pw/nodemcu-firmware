@@ -79,7 +79,7 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 // maximum number of open files for SPIFFS
 #define SPIFFS_MAX_OPEN_FILES 4
 
-// Uncomment this next line for fastest startup 
+// Uncomment this next line for fastest startup
 // It reduces the format time dramatically
 // #define SPIFFS_MAX_FILESYSTEM_SIZE	32768
 //
@@ -90,7 +90,7 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 // (minus the 16k parameter space). THis is useful for certain OTA scenarios
 // #define SPIFFS_SIZE_1M_BOUNDARY
 
-// #define LUA_NUMBER_INTEGRAL
+#define LUA_NUMBER_INTEGRAL
 
 #define READLINE_INTERVAL 80
 #define LUA_TASK_PRIO USER_TASK_PRIO_0

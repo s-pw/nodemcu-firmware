@@ -647,7 +647,7 @@ static inline void rtc_time_register_bootup(void)
 // Call this from the nodemcu entry point, i.e. just before we switch from 52MHz to 80MHz
 static inline void rtc_time_switch_clocks(void)
 {
-  rtc_time_switch_to_ccount_frequency(CPU_DEFAULT_MHZ);
+  rtc_time_switch_to_ccount_frequency(CPU_OVERCLOCK_MHZ);
 }
 
 // Call this exactly once, from user_init, i.e. once the operating system is up and running

@@ -124,13 +124,13 @@ u32_t            tcp_update_rcv_ann_wnd(struct tcp_pcb *pcb)ICACHE_FLASH_ATTR;
 #define TCP_SLOW_INTERVAL      (2*TCP_TMR_INTERVAL)  /* the coarse grained timeout in milliseconds */
 #endif /* TCP_SLOW_INTERVAL */
 
-#define TCP_FIN_WAIT_TIMEOUT 20000 /* milliseconds */
-#define TCP_SYN_RCVD_TIMEOUT 20000 /* milliseconds */
+#define TCP_FIN_WAIT_TIMEOUT 10000 /* milliseconds */
+#define TCP_SYN_RCVD_TIMEOUT 10000 /* milliseconds */
 
 #define TCP_OOSEQ_TIMEOUT        6U /* x RTO */
 
 #ifndef TCP_MSL
-#define TCP_MSL 60000UL /* The maximum segment lifetime in milliseconds */
+#define TCP_MSL 10UL /* The maximum segment lifetime in milliseconds */
 #endif
 
 /* Keepalive values, compliant with RFC 1122. Don't change this unless you know what you're doing */
