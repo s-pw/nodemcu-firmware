@@ -49,9 +49,9 @@ ifeq ($(OS),Windows_NT)
 		# Can we use -fdata-sections?
 		CCFLAGS += -ffunction-sections -fno-jump-tables -fdata-sections
 		AR = xtensa-lx106-elf-ar
-		CC = xtensa-lx106-elf-gcc
+		CC = $(WRAPCC) xtensa-lx106-elf-gcc
 		NM = xtensa-lx106-elf-nm
-		CPP = xtensa-lx106-elf-cpp
+		CPP = $(WRAPCC) xtensa-lx106-elf-cpp -E
 		OBJCOPY = xtensa-lx106-elf-objcopy
 	endif
 	FIRMWAREDIR = ..\\bin\\
