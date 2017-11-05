@@ -39,6 +39,7 @@
 // Depends on 'crypto' module for sha1
 #include "../crypto/digests.h"
 #include "../crypto/mech.h"
+#include "misc/string_ext.h"
 
 #define PROTOCOL_SECURE "wss://"
 #define PROTOCOL_INSECURE "ws://"
