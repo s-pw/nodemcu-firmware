@@ -25,7 +25,6 @@
 #define c_strncmp os_strncmp
 #define c_strncpy os_strncpy
 // #define c_strstr os_strstr
-#define c_strncasecmp c_strncmp
 
 #define c_strstr strstr
 #define c_strncat strncat
