@@ -247,7 +247,7 @@ static uint8 calc_chksum(uint8 *start, uint8 *end) {
 static uint8 default_config(rboot_config *romconf, uint32 flashsize) {
 	romconf->count = 2;
 	romconf->roms[0] = SECTOR_SIZE * (BOOT_CONFIG_SECTOR + 1);
-	romconf->roms[1] = (flashsize / 2) + (SECTOR_SIZE * (BOOT_CONFIG_SECTOR + 1));
+	romconf->roms[1] = 0x100000;
 #ifdef BOOT_GPIO_ENABLED
 	romconf->mode = MODE_GPIO_ROM;
 #endif
@@ -314,6 +314,20 @@ uint32 NOINLINE find_image(void) {
 #endif
 	} else if (flag == 4) {
 		ets_printf("32 Mbit\r\n");
+#ifdef BOOT_BIG_FLASH
+		flashsize = 0x400000;
+#else
+		flashsize = 0x100000; // limit to 8Mbit
+#endif
+	} else if (flag == 8) {
+		ets_printf("64 Mbit\r\n");
+#ifdef BOOT_BIG_FLASH
+		flashsize = 0x400000;
+#else
+		flashsize = 0x100000; // limit to 8Mbit
+#endif
+	} else if (flag == 9) {
+		ets_printf("128 Mbit\r\n");
 #ifdef BOOT_BIG_FLASH
 		flashsize = 0x400000;
 #else

@@ -6,7 +6,7 @@
 RBOOT_BUILD_BASE ?= build
 RBOOT_FW_BASE    ?= firmware
 
-SDK_DIR=../sdk/esp_iot_sdk_v2.0.0
+SDK_DIR=../sdk/esp_iot_sdk_v2.1.0
 
 ifndef XTENSA_BINDIR
 CC := xtensa-lx106-elf-gcc

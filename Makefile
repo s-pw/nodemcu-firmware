@@ -289,7 +289,7 @@ spiffs-image-remove:
 
 .PHONY: spiffs-image
 
-spiffs-image: bin/0x10000.bin
+spiffs-image: bin/eagle.app.v6.bin
 	$(MAKE) -C tools
 
 .PHONY: pre_build

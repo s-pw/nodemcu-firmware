@@ -19,7 +19,7 @@ SPIFFSFILES ?= $(patsubst $(FSSOURCE)%,%,$(shell find $(FSSOURCE) -name '*' '!' 
 # Get the filesize of /bin/0x10000.bin
 #
 
-FLASH_USED_END = 0x100000 #$$((0x`$(OBJDUMP) -t ../app/.output/eagle/debug/image/eagle.app.v6.out |grep _flash_used_end |cut -f1 -d" "` - 0x40200000))
+FLASH_USED_END = 0x200000 #$$((0x`$(OBJDUMP) -t ../app/.output/eagle/debug/image/eagle.app.v6.out |grep _flash_used_end |cut -f1 -d" "` - 0x40200000))
 
 
 #############################################################

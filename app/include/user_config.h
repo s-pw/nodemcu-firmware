@@ -21,9 +21,9 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 
 // spiffs position, relative to the start of the
 // 1mb chunk containing the corresponding rom
-#define SPIFFS_FIXED_OFFSET_RBOOT 0x100000
+//#define SPIFFS_FIXED_OFFSET_RBOOT 0x100000
 // spiffs size
-#define SPIFFS_FIXED_SIZE 0xFA000
+//#define SPIFFS_FIXED_SIZE 0xFA000
 
 // This enables lots of debug output and changes the serial bit rate. This
 // is normally only used by hardcore developers
@@ -34,7 +34,6 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 #endif /* DEVELOP_VERSION */
 
 #define BIT_RATE_DEFAULT BIT_RATE_115200
-
 // This enables automatic baud rate detection at startup
 #define BIT_RATE_AUTOBAUD
 
@@ -69,7 +68,7 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 // See https://github.com/nodemcu/nodemcu-firmware/issues/1457 for conversation details.
 #define SSL_BUFFER_SIZE 5120
 
-//#define CLIENT_SSL_ENABLE
+#define CLIENT_SSL_ENABLE
 //#define MD2_ENABLE
 #define SHA2_ENABLE
 
@@ -89,7 +88,7 @@ extern void luaL_assertfail(const char *file, int line, const char *message);
 // #define SPIFFS_MAX_FILESYSTEM_SIZE	32768
 //
 // You can force the spiffs file system to be at a fixed location
-#define SPIFFS_FIXED_LOCATION   	0x100000
+#define SPIFFS_FIXED_LOCATION   	0x200000
 //
 // You can force the SPIFFS file system to end on the next !M boundary
 // (minus the 16k parameter space). THis is useful for certain OTA scenarios
