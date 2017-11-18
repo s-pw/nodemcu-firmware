@@ -33,6 +33,7 @@ SUBDIRS= 					\
 	coap 					\
 	mqtt 					\
 	task 					\
+	u8g2lib					\
 	ucglib					\
 	smart 					\
 	modules 				\
@@ -85,6 +86,7 @@ COMPONENTS_eagle.app.v6 = 			\
 	lwip/liblwip.a 				\
 	coap/coap.a 				\
 	mqtt/mqtt.a 				\
+	u8g2lib/u8g2lib.a			\
 	ucglib/ucglib.a 			\
 	smart/smart.a 				\
 	spiffs/spiffs.a 			\
