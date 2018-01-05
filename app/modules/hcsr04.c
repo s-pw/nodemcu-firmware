@@ -9,8 +9,6 @@
 static uint32_t trig;
 static uint32_t echo;
 
-uint32_t read_sensor();
-
 static int ICACHE_FLASH_ATTR hcsr04_init(lua_State* L) {
     trig = luaL_checkinteger(L, 1);
     echo = luaL_checkinteger(L, 2);
@@ -20,18 +18,6 @@ static int ICACHE_FLASH_ATTR hcsr04_init(lua_State* L) {
     platform_gpio_write(trig, 0);
 
     return 0;
-}
-
-static int ICACHE_FLASH_ATTR hcsr04_read(lua_State* L) {
-    lua_pushinteger(L, read_sensor() * 1000 / 582);
-
-    return 1;
-}
-
-static int ICACHE_FLASH_ATTR hcsr04_read_raw(lua_State* L) {
-    lua_pushinteger(L, read_sensor());
-
-    return 1;
 }
 
 static uint32_t read_sensor() {
@@ -48,6 +34,18 @@ static uint32_t read_sensor() {
     while(platform_gpio_read(echo) == 1 && system_get_time() - now < 25000);
     uint32_t raw_time = system_get_time() - now;
     return raw_time;
+}
+
+static int ICACHE_FLASH_ATTR hcsr04_read(lua_State* L) {
+    lua_pushinteger(L, read_sensor() * 1000 / 582);
+
+    return 1;
+}
+
+static int ICACHE_FLASH_ATTR hcsr04_read_raw(lua_State* L) {
+    lua_pushinteger(L, read_sensor());
+
+    return 1;
 }
 
 static const LUA_REG_TYPE hcsr04_map[] = {
