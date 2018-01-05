@@ -33,7 +33,7 @@ SUBDIRS= 					\
 	coap 					\
 	mqtt 					\
 	task 					\
-	u8glib 					\
+	u8g2lib					\
 	ucglib					\
 	smart 					\
 	modules 				\
@@ -51,7 +51,7 @@ SUBDIRS= 					\
 	pm					\
 	sjson					\
 	rboot					\
-	
+
 
 endif # } PDIR
 
@@ -87,7 +87,7 @@ COMPONENTS_eagle.app.v6 = 			\
 	lwip/liblwip.a 				\
 	coap/coap.a 				\
 	mqtt/mqtt.a 				\
-	u8glib/u8glib.a 			\
+	u8g2lib/u8g2lib.a			\
 	ucglib/ucglib.a 			\
 	smart/smart.a 				\
 	spiffs/spiffs.a 			\
@@ -107,7 +107,6 @@ COMPONENTS_eagle.app.v6 = 			\
 	misc/libmisc.a				\
 	sjson/libsjson.a			\
 	libmain.a					\
-	
 
 # Inspect the modules library and work out which modules need to be linked.
 # For each enabled module, a symbol name of the form XYZ_module_selected is
