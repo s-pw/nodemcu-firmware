@@ -3,6 +3,7 @@
 #include "c_stdlib.h"
 
 #include "platform.h"
+#include "brzo_i2c.h"
 
 #define U8X8_USE_PINS
 #include "u8x8_nodemcu_hal.h"
@@ -119,6 +120,11 @@ typedef struct {
   uint8_t id;
 } hal_i2c_t;
 
+
+uint8_t buff[50];
+uint8_t buffCnt = 0;
+
+extern uint8_t i2c_error;
 uint8_t u8x8_byte_nodemcu_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *arg_ptr)
 {
   uint8_t *data;
@@ -128,13 +134,13 @@ uint8_t u8x8_byte_nodemcu_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
   case U8X8_MSG_BYTE_SEND:
     if (hal->id == 0) {
       data = (uint8_t *)arg_ptr;
-      
-      while( arg_int > 0 ) {
-        platform_i2c_send_byte( 0, *data );
-        data++;
-        arg_int--;
-      }
-
+      memcpy(buff + buffCnt, data, arg_int);
+      buffCnt += arg_int;
+//      while( arg_int > 0 ) {
+//        platform_i2c_send_byte( 0, *data );
+//        data++;
+//        arg_int--;
+//      }
     } else {
       // invalid id
       return 0;
@@ -144,6 +150,8 @@ uint8_t u8x8_byte_nodemcu_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
 
   case U8X8_MSG_BYTE_INIT:
     {
+      brzo_i2c_setup(6,7,0);
+      //  platform_i2c_setup(0, 6, 7,0);
       // the hal member initially contains the i2c id
       int id = (int)hal;
       if (!(hal = c_malloc( sizeof ( hal_i2c_t ) )))
@@ -158,9 +166,9 @@ uint8_t u8x8_byte_nodemcu_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
 
   case U8X8_MSG_BYTE_START_TRANSFER:
     if (hal->id == 0) {
-      platform_i2c_send_start( 0 );
-      platform_i2c_send_address( 0, u8x8_GetI2CAddress(u8x8), PLATFORM_I2C_DIRECTION_TRANSMITTER );
-
+      brzo_i2c_start_transaction(u8x8_GetI2CAddress(u8x8), 1000);
+      //platform_i2c_send_start( 0 );
+      //platform_i2c_send_address( 0, u8x8_GetI2CAddress(u8x8), PLATFORM_I2C_DIRECTION_TRANSMITTER );
     } else {
       // invalid id
       return 0;
@@ -169,8 +177,11 @@ uint8_t u8x8_byte_nodemcu_i2c(u8x8_t *u8x8, uint8_t msg, uint8_t arg_int, void *
 
   case U8X8_MSG_BYTE_END_TRANSFER:
     if (hal->id == 0) {
-      platform_i2c_send_stop( 0 );
+      brzo_i2c_write(buff, buffCnt, true);
+      buffCnt = 0;
+      brzo_i2c_end_transaction();
 
+      //platform_i2c_send_stop( 0 );
     } else {
       // invalid id
       return 0;
