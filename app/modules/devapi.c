@@ -346,6 +346,17 @@ static err_t ICACHE_FLASH_ATTR process_data(devapi_state *req, struct tcp_pcb *p
     }
 }
 
+int ends_with(const char *str, const char *suffix)
+{
+    if (!str || !suffix)
+        return 0;
+    size_t lenstr = strlen(str);
+    size_t lensuffix = strlen(suffix);
+    if (lensuffix >  lenstr)
+        return 0;
+    return strncmp(str + lenstr - lensuffix, suffix, lensuffix) == 0;
+}
+
 static err_t ICACHE_FLASH_ATTR process_payload(devapi_state *req, struct tcp_pcb *pcb, char *buf, u16_t len) {
     if (req->remaining_content_length == -1) {
         dynbuf_append(req->buf, buf, len);
@@ -511,13 +522,17 @@ static err_t ICACHE_FLASH_ATTR process_payload(devapi_state *req, struct tcp_pcb
             for (int i = 0; i < req->api->callback_num; i++) {
                 lua_State *L = lua_getstate();
                 lua_rawgeti(L, LUA_REGISTRYINDEX, req->api->callback_chain[i]); // load the callback function
+                int params = 3;
                 lua_pushstring(L, req->http_method);
                 lua_pushstring(L, req->path);
                 lua_pushlstring(L, req->buf->data, req->buf->length); // pass data
-                lua_pushstring(L, req->credentials);
+                if (req->credentials) {
+                    lua_pushstring(L, req->credentials);
+                    params++;
+                }
 
                 int n = lua_gettop(L);
-                lua_call(L, 3, LUA_MULTRET);
+                lua_call(L, params, LUA_MULTRET);
                 int ret_vals = lua_gettop(L) - n + 4;
 
                 if (ret_vals > 0) {
@@ -551,7 +566,40 @@ static err_t ICACHE_FLASH_ATTR process_payload(devapi_state *req, struct tcp_pcb
                 }
             }
             if (! processed) {
-                req->mode = NOT_FOUND;
+                char *path = req->path + 1;
+                req->file_fd = vfs_open(path, "r");
+                if (req->file_fd) {
+                    req->mode = FILE_READ;
+                    uint32_t size = vfs_size(req->file_fd);
+                    char* content_type;
+                    if (ends_with(path, ".html") || ends_with(path, ".htm")) {
+                        content_type = "text/html";
+                    } else if (ends_with(path, ".css")) {
+                        content_type = "text/css";
+                    } else if (ends_with(path, ".xhtml")) {
+                        content_type = "application/xhtml+xml";
+                    } else if (ends_with(path, ".js")) {
+                        content_type = "application/javascript";
+                    } else if (ends_with(path, ".json")) {
+                        content_type = "application/json";
+                    } else if (ends_with(path, ".xml")) {
+                        content_type = "application/xml";
+                    } else if (ends_with(path, ".ico")) {
+                        content_type = "image/x-icon";
+                    } else if (ends_with(path, ".jpeg") || ends_with(path, ".jpg")) {
+                        content_type = "image/jpeg";
+                    } else if (ends_with(path, ".gif")) {
+                        content_type = "image/gif";
+                    } else if (ends_with(path, ".png")) {
+                        content_type = "image/png";
+                    } else {
+                        content_type = "application/octet-stream";
+                    }
+                    build_http_resp(req->buf, 200, content_type, (size_t) size, NULL);
+                    send_buf(req, pcb);
+                } else {
+                    req->mode = NOT_FOUND;
+                }
             }
         }
         if (!req->response_sent) {
