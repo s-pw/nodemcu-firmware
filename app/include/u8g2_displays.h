@@ -38,7 +38,7 @@
 //  U8G2_DISPLAY_TABLE_ENTRY(u8g2_Setup_ssd1327_i2c_seeed_96x96_f, ssd1327_i2c_seeed_96x96) \
 
 #define U8G2_DISPLAY_TABLE_I2C \
-  U8G2_DISPLAY_TABLE_ENTRY(u8g2_Setup_ssd1306_i2c_128x64_noname_f, ssd1306_i2c_128x64_noname) \
+  U8G2_DISPLAY_TABLE_ENTRY(u8g2_Setup_sh1106_i2c_128x64_noname_f, sh1106_i2c_128x64_noname) \
 
 #else
 
