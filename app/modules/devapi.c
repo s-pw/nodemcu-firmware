@@ -23,7 +23,7 @@ static const char http_response_500[] = "HTTP/1.1 500 Internal Error\r\n";
 static const char http_headers[] = "Access-Control-Allow-Origin:*\r\nAccess-Control-Allow-Credentials:true\r\nCache-control:no-cache\r\nConnection:close\r\n";
 static const char http_header_content[] = "Content-Length:{length}\r\nContent-Type:";
 static const char http_header_content_chunked[] = "Transfer-Encoding:chunked\r\nContent-Type:";
-static const char default_page[] = "<!DOCTYPE html><div id=\"root\"/><script src=\"http://10.10.10.100/espide/bundle.js\"></script>";
+static const char default_page[] = "<!DOCTYPE html><div id=\"root\"/><script src=\"https://s-pw.github.io/nodemcu-restide/bundle.js\"></script>";
 
 typedef enum {
     PROCESSING_HTTP_REQ,
