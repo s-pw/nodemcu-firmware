@@ -212,7 +212,7 @@ static void ICACHE_RAM_ATTR platform_gpio_intr_dispatcher (void *dummy){
   if (gpio_status & platform_gpio_hook.all_bits) {
     for (j = 0; j < platform_gpio_hook.count; j++) {
        if (gpio_status & platform_gpio_hook.entry[j].bits)
-         gpio_status = (platform_gpio_hook.entry[j].func)(gpio_status);
+         gpio_status = (platform_gpio_hook.entry[j].func)(gpio_status, now);
     }
   }
 #endif

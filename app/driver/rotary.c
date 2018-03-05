@@ -94,7 +94,7 @@ int rotary_close(uint32_t channel)
   return 0;
 }
 
-static uint32_t  ICACHE_RAM_ATTR rotary_interrupt(uint32_t ret_gpio_status) 
+static uint32_t  ICACHE_RAM_ATTR rotary_interrupt(uint32_t ret_gpio_status, uint32_t now)
 {
   // This function really is running at interrupt level with everything
   // else masked off. It should take as little time as necessary.

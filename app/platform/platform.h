@@ -39,7 +39,7 @@ uint8_t platform_key_led( uint8_t level);
 #define PLATFORM_GPIO_HIGH 1
 #define PLATFORM_GPIO_LOW 0
 
-typedef uint32_t (* platform_hook_function)(uint32_t bitmask);
+typedef uint32_t (* platform_hook_function)(uint32_t bitmask, uint32_t now);
 
 static inline int platform_gpio_exists( unsigned pin ) { return pin < NUM_GPIO; }
 int platform_gpio_mode( unsigned pin, unsigned mode, unsigned pull );
