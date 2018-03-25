@@ -56,6 +56,7 @@ INCLUDES += -I ../http
 INCLUDES += -I ../sjson
 INCLUDES += -I ../websocket
 INCLUDES += -I ../pm
+INCLUDES += -I ../sqlite3
 INCLUDES += -I ../rboot
 INCLUDES += -I ../../rboot
 PDIR := ../$(PDIR)

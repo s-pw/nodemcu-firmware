@@ -298,6 +298,17 @@ static int wifi_getphymode( lua_State* L )
   return 1;
 }
 
+// Lua: wifi.setmaxtxpower()
+static int wifi_setmaxtxpower( lua_State* L )
+{
+  unsigned power;
+  power = luaL_checkinteger( L, 1 );
+  luaL_argcheck(L, (power > 0 && power < 83), 1, "tx power out of range (0->82)");
+
+  system_phy_set_max_tpw( (uint8_t) power);
+  return 1;
+}
+
 #ifdef PMSLEEP_ENABLE
 /* Begin WiFi suspend functions*/
 #include "pmSleep.h"
@@ -711,10 +722,7 @@ static int wifi_station_clear_config ( lua_State* L )
   bool auto_connect=true;
   bool save_to_flash=true;
 
-  memset(sta_conf.ssid, 0, sizeof(sta_conf.ssid));
-  memset(sta_conf.password, 0, sizeof(sta_conf.password));
-  memset(sta_conf.bssid, 0, sizeof(sta_conf.bssid));
-  sta_conf.bssid_set=0;
+  memset(&sta_conf, 0, sizeof(sta_conf));
 
   wifi_station_disconnect();
 
@@ -742,10 +750,9 @@ static int wifi_station_config( lua_State* L )
   bool save_to_flash=true;
   size_t sl, pl, ml;
 
-  memset(sta_conf.ssid, 0, sizeof(sta_conf.ssid));
-  memset(sta_conf.password, 0, sizeof(sta_conf.password));
-  memset(sta_conf.bssid, 0, sizeof(sta_conf.bssid));
-  sta_conf.bssid_set=0;
+  memset(&sta_conf, 0, sizeof(sta_conf));
+  sta_conf.threshold.rssi = -127;
+  sta_conf.threshold.authmode = AUTH_OPEN;
 
   if(lua_istable(L, 1))
   {
@@ -838,7 +845,7 @@ static int wifi_station_config( lua_State* L )
 
     lua_State* L_temp = NULL;
 
-    lua_getfield(L, 1, "connect_cb");
+    lua_getfield(L, 1, "connected_cb");
     if (!lua_isnil(L, -1))
     {
       if (lua_isfunction(L, -1))
@@ -851,12 +858,12 @@ static int wifi_station_config( lua_State* L )
       }
       else
       {
-        return luaL_argerror(L, 1, "connect_cb:not function");
+        return luaL_argerror(L, 1, "connected_cb:not function");
       }
     }
     lua_pop(L, 1);
 
-    lua_getfield(L, 1, "disconnect_cb");
+    lua_getfield(L, 1, "disconnected_cb");
     if (!lua_isnil(L, -1))
     {
       if (lua_isfunction(L, -1))
@@ -869,7 +876,7 @@ static int wifi_station_config( lua_State* L )
       }
       else
       {
-        return luaL_argerror(L, 1, "disconnect_cb:not function");
+        return luaL_argerror(L, 1, "disconnected_cb:not function");
       }
     }
     lua_pop(L, 1);
@@ -1021,6 +1028,8 @@ static int wifi_station_listap( lua_State* L )
     return luaL_error( L, "Can't list ap in SOFTAP mode" );
   }
   struct scan_config scan_cfg;
+  memset(&scan_cfg, 0, sizeof(scan_cfg));
+
   getap_output_format=0;
 
   if (lua_type(L, 1)==LUA_TTABLE)
@@ -1050,10 +1059,6 @@ static int wifi_station_listap( lua_State* L )
         return luaL_error( L, "wrong arg type" );
       }
     }
-    else
-    {
-      scan_cfg.ssid=NULL;
-    }
 
     lua_getfield(L, 1, "bssid");
     if (!lua_isnil(L, -1)) /* found? */
@@ -1074,10 +1079,6 @@ static int wifi_station_listap( lua_State* L )
         return luaL_error( L, "wrong arg type" );
       }
     }
-    else
-    {
-      scan_cfg.bssid=NULL;
-    }
 
 
     lua_getfield(L, 1, "channel");
@@ -1096,10 +1097,6 @@ static int wifi_station_listap( lua_State* L )
         return luaL_error( L, "wrong arg type" );
       }
     }
-    else
-    {
-      scan_cfg.channel=0;
-    }
 
     lua_getfield(L, 1, "show_hidden");
     if (!lua_isnil(L, -1)) /* found? */
@@ -1117,10 +1114,6 @@ static int wifi_station_listap( lua_State* L )
       {
         return luaL_error( L, "wrong arg type" );
       }
-    }
-    else
-    {
-      scan_cfg.show_hidden=0;
     }
 
     if (lua_type(L, 2) == LUA_TFUNCTION || lua_type(L, 2) == LUA_TLIGHTFUNCTION)
@@ -1796,6 +1789,7 @@ static const LUA_REG_TYPE wifi_map[] =  {
   { LSTRKEY( "getchannel" ),     LFUNCVAL( wifi_getchannel ) },
   { LSTRKEY( "setphymode" ),     LFUNCVAL( wifi_setphymode ) },
   { LSTRKEY( "getphymode" ),     LFUNCVAL( wifi_getphymode ) },
+  { LSTRKEY( "setmaxtxpower" ),  LFUNCVAL( wifi_setmaxtxpower ) },
 #ifdef PMSLEEP_ENABLE
   { LSTRKEY( "suspend" ),        LFUNCVAL( wifi_suspend ) },
   { LSTRKEY( "resume" ),         LFUNCVAL( wifi_resume ) },
@@ -1811,6 +1805,9 @@ static const LUA_REG_TYPE wifi_map[] =  {
   { LSTRKEY( "ap" ),             LROVAL( wifi_ap_map ) },
 #if defined(WIFI_SDK_EVENT_MONITOR_ENABLE)
   { LSTRKEY( "eventmon" ),       LROVAL( wifi_event_monitor_map ) }, //declared in wifi_eventmon.c
+#endif
+#if defined(LUA_USE_MODULES_WIFI_MONITOR)
+  { LSTRKEY( "monitor" ),        LROVAL( wifi_monitor_map ) }, //declared in wifi_monitor.c
 #endif
   { LSTRKEY( "NULLMODE" ),       LNUMVAL( NULL_MODE ) },
   { LSTRKEY( "STATION" ),        LNUMVAL( STATION_MODE ) },
@@ -1886,6 +1883,9 @@ int luaopen_wifi( lua_State *L )
   }
 #if defined(WIFI_SDK_EVENT_MONITOR_ENABLE)
   wifi_eventmon_init();
+#endif
+#if defined(LUA_USE_MODULES_WIFI_MONITOR)
+  wifi_monitor_init(L);
 #endif
  return 0;
 }
