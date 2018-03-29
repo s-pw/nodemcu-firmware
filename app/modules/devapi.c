@@ -34,7 +34,6 @@ typedef enum {
     SENDING_RESPONSE,
     SENDING_CHUNKED_RESPONSE,
     CALLBACK,
-    RESTART,
     LUA_EXEC,
     CLOSE,
     NOT_FOUND
@@ -213,11 +212,6 @@ static int dostring(struct tcp_pcb *pcb, devapi_state *req, lua_State *L, const 
     return report(pcb, req, L, status, lua_gettop(L) - n);
 }
 
-static void ICACHE_FLASH_ATTR restart_callback(void *arg) {
-    uart_div_modify(0, 80*1000000 / 115200);
-    system_restart();
-}
-
 static void ICACHE_FLASH_ATTR devapi_close(void *arg, struct tcp_pcb *pcb) {
     err_t err;
 
@@ -234,12 +228,6 @@ static void ICACHE_FLASH_ATTR devapi_close(void *arg, struct tcp_pcb *pcb) {
         tcp_poll(pcb, NULL, 0);
         tcp_sent(pcb, NULL);
         if (req != NULL) {
-            if (req->mode == RESTART) {
-                os_timer_t timeout_timer;
-                os_timer_setfn(&timeout_timer, (os_timer_func_t *) restart_callback, NULL);
-                os_timer_arm(&timeout_timer, 300, false);
-            }
-
             if (req->buf) {
                 dynbuf_free(req->buf);
                 c_free(req->buf);
@@ -450,8 +438,6 @@ static err_t ICACHE_FLASH_ATTR process_payload(devapi_state *req, struct tcp_pcb
                         http_set_content_length(req->buf->data, req->buf->length - http_req_len);
                         send_buf(req, pcb);
                     }
-                } else if (c_strncmp(path, "restart", 7) == 0 && verify_creds(req, pcb)) {
-                    req->mode = RESTART;
                 } else if (c_strncmp(path, "log", 3) == 0 && verify_creds(req, pcb)) {
                     if (req->api->log_buffer && req->api->log_buffer->length > 0) {
                         build_http_resp(req->buf, 200, "text/plain", (size_t) req->api->log_buffer->length, req->api->log_buffer->data);
