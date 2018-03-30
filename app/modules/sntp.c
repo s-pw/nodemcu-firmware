@@ -145,6 +145,8 @@ static uint8_t pending_LI;
 static int32_t next_midnight;
 static uint64_t pll_increment;
 
+int32_t pst_offset;
+
 #define PLL_A   (1 << (32 - 11))
 #define PLL_B   (1 << (32 - 11 - 2))
 
@@ -258,6 +260,20 @@ static void sntp_handle_result(lua_State *L) {
   } else {
     rtctime_settimeofday (&tv);
   }
+  struct rtc_tm date;
+  rtctime_gmtime(tv.tv_sec - pst_offset, &date);
+  int mon = date.tm_mon + 1;
+  int day = date.tm_mday;
+  int wday = date.tm_wday + 1;
+  int dst = 1;
+  if (mon < 3 || mon > 11) {
+    dst = 0;
+  } else if (mon == 11 && day - wday >= 0) {
+    dst = 0;
+  } else if (mon == 3 && day - wday < 7) {
+    dst = 0;
+  }
+  pst_offset = 3600 * (8 - dst);
 #endif
 
   if (have_cb)

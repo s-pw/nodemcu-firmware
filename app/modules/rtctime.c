@@ -197,6 +197,7 @@ static int rtctime_dsleep_aligned (lua_State *L)
   lua_pushinteger (L, val);	    \
   lua_setfield (L, -2, key);
 
+extern int pst_offset;
 // rtctime.epoch2cal (stamp)
 static int rtctime_epoch2cal (lua_State *L)
 {
@@ -204,7 +205,7 @@ static int rtctime_epoch2cal (lua_State *L)
   int32_t stamp = luaL_checkint (L, 1);
   luaL_argcheck (L, stamp >= 0, 1, "wrong arg range");
 
-  rtctime_gmtime (stamp, &date);
+  rtctime_gmtime (stamp - pst_offset, &date);
 
   /* construct Lua table */
   lua_createtable (L, 0, 8);

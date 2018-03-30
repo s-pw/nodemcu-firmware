@@ -186,6 +186,7 @@ static void cron_handle_time(uint8_t mon, uint8_t dom, uint8_t dow, uint8_t hour
   }
 }
 
+extern int32_t pst_offset;
 static void cron_handle_tmr() {
   struct rtc_timeval tv;
   rtctime_gettimeofday(&tv);
@@ -193,7 +194,7 @@ static void cron_handle_tmr() {
     ets_timer_arm_new(&cron_timer, 1000, 0, 1);
     return;
   }
-  time_t t = tv.tv_sec;
+  time_t t = tv.tv_sec - pst_offset;
   struct tm tm;
   gmtime_r(&t, &tm);
   uint32_t diff = 60000 - tm.tm_sec * 1000 - tv.tv_usec / 1000;
